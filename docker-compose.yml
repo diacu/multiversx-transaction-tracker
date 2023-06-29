@@ -1,0 +1,56 @@
+version: '3'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db
+      - redis
+      - rabbitmq_common
+
+  db:
+    image: mysql:latest
+    command: --default-authentication-plugin=mysql_native_password
+    container_name: api-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 'rootpassword'
+      MYSQL_DATABASE: 'multiversx'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+    ports:
+      - '13306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - my-db:/var/lib/mysql
+
+  redis:
+    image: redis
+    container_name: api-cache
+    command: redis-server
+    ports:
+      - '16379:6379'
+    expose:
+      - '6379'
+
+  rabbitmq_common:
+    image: 331leo/rabbitmq3-management-mqtt
+    container_name: 'rabbitmq_common'
+    hostname: rabbitmq
+    environment:
+      HOSTNAME: rabbitmq
+      RABBITMQ_NODENAME: rabbitmq
+      RABBITMQ_DEFAULT_USER: 'user'
+      RABBITMQ_DEFAULT_PASS: 'password'
+    volumes:
+      - /var/lib/rabbitmq
+    ports:
+      - 5673:5672
+      - 15673:15672
+
+volumes:
+  my-db:
